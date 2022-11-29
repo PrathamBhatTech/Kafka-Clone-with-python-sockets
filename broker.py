@@ -11,6 +11,9 @@ class Broker():
         self.port = port
         self.conn = None
 
+        self.producers = []
+        self.consumers = {}
+
         # Host and port of the Zookeeper
         HOST, PORT = "localhost", 9092
 
@@ -29,29 +32,46 @@ class Broker():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((self.host, self.port))
+        sock.listen(1)
+        print('Broker is listening on port ' + str(self.port) + '...')
+
         while True:
-            sock.listen(1)
-            print('Broker is listening on port ' + str(self.port) + '...')
+            self.conn, self.addr = sock.accept()
+            print('Broker has accepted a connection from ' + str(self.addr))
 
-            while True:
-                self.conn, self.addr = sock.accept()
-                print('Broker has accepted a connection from ' + str(self.addr))
-                threading.Thread(target=self.multi_threaded_client, args=[self.conn,self.addr]).start()
+            prodcons = self.conn.recv(2048).decode('utf-8')
 
+            if prodcons == 'Producer':
+                self.producers.append(self.addr)
+                threading.Thread(target=self.multi_threaded_publisher, args=(self.conn,self.addr)).start()
+            else:
+                topic = self.conn.recv(2048).decode('utf-8')
+                if topic in self.consumers:
+                    self.consumers[topic].append(self.conn)
+                else:
+                    self.consumers[topic] = self.conn
 
-    def multi_threaded_client(self, conn, addr):
+        
+    def multi_threaded_publisher(self, conn, addr):
         while True:
             data = conn.recv(2048)
-            response = 'Server message: ' + data.decode('utf-8')
+            conn.sendall("ack".encode('utf-8'))
+
             if not data:
                 break
+
+            topic, value = data.decode('utf-8').split(':', 1)
             print('Broker has received a message from ' + str(addr) + ': ' + data.decode('utf-8'))
-            conn.sendall(response.encode('utf-8'))
-        conn.close()
-        
+
+            if topic in self.consumers:
+                for consumer in self.consumers[topic]:
+                    consumer.sendall(value)
+
+
     def zookeeper_heartbeat(self, conn):
+        conn.send('Broker'.encode('utf-8'))
         while True:
-            conn.send('fBroker {self.host}:{self.port} is alive'.encode('utf-8'))
+            conn.send(f'Broker {self.host}:{self.port} is alive'.encode('utf-8'))
             ack = conn.recv(2048).decode('utf-8')
             sleep(3)
 
