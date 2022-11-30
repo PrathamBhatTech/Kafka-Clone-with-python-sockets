@@ -16,3 +16,4 @@ while True:
         print(e)
         if e == "[Errno 104] Connection reset by peer":
             producer.reconnectToBroker()
+
