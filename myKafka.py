@@ -100,12 +100,6 @@ class KafkaConsumer():
         self.consumer.close()  # type: ignore
 
     def poll(self, timeout_ms=None, max_records=None, update_offsets=True):
-<<<<<<< HEAD
         return self.consumer.poll(timeout_ms, max_records, update_offsets)  # type: ignore
 
 
-
-
-=======
-        return self.consumer.poll(timeout_ms, max_records, update_offsets)
->>>>>>> c10c58b08c562c91efc11ae21eaa3e4e014d8e32
