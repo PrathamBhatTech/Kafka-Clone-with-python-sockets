@@ -16,9 +16,13 @@ Our implementation consists of:
 
 ## Mini Zookeeper
 The Mini Zookeeper is the component that monitors the functioning of all the other subsequent components such as producers, consumers and brokers.
-*Broker Connection Method: 
+### Broker Connection Method: 
 * When a broker connects to the Mini Zookeeper, it creates a new thread exclusively to listen to the heartbeats of the broker, which is implemented to be sent at intervals of 0.5 seconds. If the MiniZookeeper does not receive the hearbeat within a second, the MiniZookeeper simply pops the dead broker from the list of alive brokers. 
-* The new broker is selected using the First-Come-First-Serve (FCFS) algorithm where, in case of a broker death, the next broker in the list of alive brokers gets elected to manage the publisher-subscriber model. 
+* The new broker is selected using the First-Come-First-Serve (FCFS) algorithm where, in case of a broker death, the next broker in the list of alive brokers gets elected to manage the publisher-subscriber model.
+
+### File Replication using Directories and Subdirectories
+* In this implementation, we have made use of file partitioning to implement the model. A replica of the file that is created for a particular topic is saved in a directory with reference to the port number of the current active broker. A replica of this file is also stored in subdirectories with reference to the port numbers of other brokers. 
+*  In case the broker fails, a consumer can reconnect to the new elected leader broker, where there is already a replica of the file, and it can simply proceed to receive messages for the subscribed topic.
 
 ## Kafka Brokers
 * An implementation of Kafka broker technology.
