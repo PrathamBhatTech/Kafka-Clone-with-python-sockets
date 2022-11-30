@@ -1,7 +1,8 @@
 import socket
 import sys
 import threading
-
+import json
+import os.path
 from time import sleep
 
 # Kafka Broker
@@ -58,14 +59,37 @@ class Broker():
             conn.sendall("ack".encode('utf-8'))
 
             if not data:
-                break
+                continue
 
-            topic, value = data.decode('utf-8').split(':', 1)
-            print('Broker has received a message from ' + str(addr) + ': ' + data.decode('utf-8'))
+            else:
+                topic, value = data.decode('utf-8').split(':', 1)
+                print('Broker has received a message from ' + str(addr) + ': ' + data.decode('utf-8'))
 
-            if topic in self.consumers:
-                for consumer in self.consumers[topic]:
-                    consumer.sendall(value)
+                # store this new data into directory of file
+                topicLocation = str('./topic/'+topic+'.json')
+
+                # topic already exists
+                if os.path.isfile(topicLocation) == True:
+                    
+                    with open(topicLocation, "r") as jsonFile:
+                        existingData = json.load(jsonFile)
+                    
+                    updatedData = {"val":existingData["val"].append(value)} 
+
+                    with open(topicLocation, "w") as jsonFile:
+                        json.dump(updatedData, jsonFile)
+
+                # topic is new
+                else:
+                    newData = {"val":[value]} 
+                    with open(topicLocation, "w") as jsonFile:
+                        json.dump(newData, jsonFile)
+
+                # NEEDS CHANGE
+                # hb
+                if topic in self.consumers:
+                    for consumer in self.consumers[topic]:
+                        consumer.sendall(value)
 
 
     def zookeeper_heartbeat(self, conn):
@@ -77,4 +101,4 @@ class Broker():
 
 
 host, port = sys.argv[1].split(':')
-Broker = Broker(host, int(port))
+Broker = Broker(host, int(port))  # type: ignore
