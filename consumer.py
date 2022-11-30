@@ -1,26 +1,22 @@
-import os.path
 import json
 from myKafka import KafkaConsumer
 
-
-topicName = input("\nEnter topicName consumer subscribes to :")
-oldData = []
 try:
-    while True:
-        ## - send this topic to broker for every iteration
-        # Broker sends yes/no to consumer.
-        ack = [True,False] #recieve this value
-
+    consumer = KafkaConsumer(topicName = 'test', bootstrap_servers = 'localhost:9092')
+    topicStatus = consumer.topic_status()
+    while True and topicStatus:
         topicLocation = str("./topic/"+topicName+".json")
-        if os.path.isfile(topicLocation) == True and ack == True:
+
+        if os.path.isfile(topicLocation):
             f = open('data.json')
             temp = json.load(f)
             data = temp["val"]
             for topic in list(set(temp) - set(oldData)):
                 print(topic)        
-            oldData = temp
+
         else:
             # print("No new data for :",topicName)
             pass
+
 except KeyboardInterrupt:
     print('Unsubscribed!')

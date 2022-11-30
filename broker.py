@@ -3,6 +3,7 @@ import sys
 import threading
 import json
 import os.path
+import os
 from time import sleep
 
 # Kafka Broker
@@ -24,6 +25,7 @@ class Broker():
         sock_zookeeper.connect((HOST, PORT))
         self.conn = sock_zookeeper
         print('Broker has connected to Zookeeper')
+        self.conn.send(f"Broker {self.port}".encode('utf-8'))
 
         # Start heartbeat thread
         threading.Thread(target=self.zookeeper_heartbeat, args=(self.conn,)).start()
@@ -43,7 +45,7 @@ class Broker():
             prodcons = self.conn.recv(2048).decode('utf-8')
 
             if prodcons == 'Producer':
-                self.producers.append(self.addr)
+                self.producers.append(self.addr[1])
                 threading.Thread(target=self.multi_threaded_publisher, args=(self.conn,self.addr)).start()
             else:
                 topic = self.conn.recv(2048).decode('utf-8')
@@ -66,7 +68,7 @@ class Broker():
                 print('Broker has received a message from ' + str(addr) + ': ' + data.decode('utf-8'))
 
                 # store this new data into directory of file
-                topicLocation = str('./topic/'+topic+'.json')
+                topicLocation = str('topics/'+topic+'.json')
 
                 # topic already exists
                 if os.path.isfile(topicLocation) == True:
@@ -82,14 +84,15 @@ class Broker():
                 # topic is new
                 else:
                     newData = {"val":[value]} 
+                    os.system('touch topics/'+topic+'.json')
                     with open(topicLocation, "w") as jsonFile:
                         json.dump(newData, jsonFile)
 
                 # NEEDS CHANGE
                 # hb
-                if topic in self.consumers:
-                    for consumer in self.consumers[topic]:
-                        consumer.sendall(value)
+                # if topic in self.consumers:
+                #     for consumer in self.consumers[topic]:
+                #         consumer.sendall(value)
 
 
     def zookeeper_heartbeat(self, conn):

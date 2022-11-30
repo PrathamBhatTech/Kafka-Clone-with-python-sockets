@@ -1,6 +1,8 @@
 import socket
 import threading
 
+import asyncio
+
 class Zookeeper():
     def __init__(self):
         self.HOST = "localhost"
@@ -21,16 +23,17 @@ class Zookeeper():
             self.conn, self.addr = sock.accept()
             print('Zookeeper has accepted a connection from ' + str(self.addr))
             data = self.conn.recv(2048)
-            if data.decode('utf-8') != 'Broker':
+            if data.decode('utf-8').split(' ')[0] != 'Broker':
                 port = alive_brokers[0]
-                self.conn.send(f"{host}:{port}".encode('utf-8'))
+                self.conn.send(str(port).encode('utf-8'))
             else:
-                alive_brokers.append(self.addr)
+                alive_brokers.append(data.decode('utf-8').split(' ')[1])
                 threading.Thread(target=self.multi_threaded_broker, args=[self.conn,self.addr]).start()
 
     def multi_threaded_broker(self, conn, addr):
         while True:
             # TODO: if broker doesn't send heartbeat for 10 seconds, remove it from the list
+            # asyncio.run(self.no_time_to_die())
             data = conn.recv(2048)
             if not data:
                 break
@@ -38,3 +41,8 @@ class Zookeeper():
             conn.sendall("ack".encode('utf-8'))
 
         conn.close()
+
+    async def no_time_to_die(self):
+        self.conn.close()
+
+Zookeeper()
