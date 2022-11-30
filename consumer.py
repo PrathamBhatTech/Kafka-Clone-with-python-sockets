@@ -10,7 +10,8 @@ if len(sys.argv) > 1:
     
 
 topicName = input("\nEnter topicName consumer subscribes to :")
-topicLocation = str("topics/"+topicName+".csv")
+consumer = KafkaConsumer(topicName , bootstrap_servers = 'localhost:9092')
+topicLocation = str(str(consumer.broker_port)+"/"+topicName+".csv")
 
 oldData = []
 
@@ -25,9 +26,8 @@ if argument != '--from-beginning':
 
         oldData = temp
 
-consumer = KafkaConsumer(topicName , bootstrap_servers = 'localhost:9092')
 topicStatus = consumer.topic_status()
-print(topicStatus)
+print("Connected to broker at port: " + str(consumer.broker_port))
 while True:
     try:
         consumer.checkBroker()
@@ -44,7 +44,7 @@ while True:
                 print(newTopic)
                 oldData = temp
         else:
-            print("Topic does not exist")
+            # print("Topic does not exist")
             pass
 
     except KeyboardInterrupt:

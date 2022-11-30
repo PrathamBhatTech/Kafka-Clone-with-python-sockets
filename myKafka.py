@@ -103,7 +103,7 @@ class KafkaConsumer():
         data = self.conn.recv(1024)
         self.conn.send("ack".encode('utf-8'))
 
-        print('Kafka Consumer has received a message from ' + str(self.bootstrap_servers) + ': ' + data.decode('utf-8'))
+        # print('Kafka Consumer has received a message from ' + str(self.bootstrap_servers) + ': ' + data.decode('utf-8'))
 
         if data.decode('utf-8') != 'yes':
             self.topic_exists = True
@@ -122,7 +122,6 @@ class KafkaConsumer():
             print('Broker is down. Reconnecting...')
             self.reconnectToBroker()
         except Exception as e:
-            print('Error: ' + str(e))
             if e == "[Errno 104] Connection reset by peer" or e == "[Errno 32] Broken pipe":
                 self.conn.close()
                 self.reconnectToBroker()

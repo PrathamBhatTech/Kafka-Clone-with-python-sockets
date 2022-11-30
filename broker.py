@@ -73,25 +73,27 @@ class Broker():
                 topic, value = data.decode('utf-8').split(':', 1)
                 print('Broker has received a message from ' + str(addr) + ': ' + topic + ' ' + value)
 
-                print("Value: " + value)
                 if value:
                     # store this new data into directory of file
-                    topicLocation = str('topics/'+topic+'.csv')
+                    topicLocation1 = str("9095"+'/'+topic+'.csv')
+                    topicLocation2 = str("9096"+'/'+topic+'.csv')
+                    topicLocation3 = str("9097"+'/'+topic+'.csv')
 
-                    # topic already exists
-                    if os.path.isfile(topicLocation) == True:
-                        
-                        f = open(topicLocation, "a")
-                        writer = csv.writer(f)
-                        writer.writerow([value])
-                        f.close()
-                    # topic is new
-                    else:
-                        os.system('touch topics/'+topic+'.csv')
-                        f = open(topicLocation, "w")
-                        writer = csv.writer(f)
-                        writer.writerow([value])
-                        f.close()
+                    for topicLocation in [topicLocation1, topicLocation2, topicLocation3]:
+                        # topic already exists
+                        if os.path.isfile(topicLocation) == True:
+                            
+                            f = open(topicLocation, "a")
+                            writer = csv.writer(f)
+                            writer.writerow([value])
+                            f.close()
+                        # topic is new
+                        else:
+                            os.system('touch '+topicLocation)
+                            f = open(topicLocation, "w")
+                            writer = csv.writer(f)
+                            writer.writerow([value])
+                            f.close()
 
 
     def zookeeper_heartbeat(self, conn):
