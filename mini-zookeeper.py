@@ -2,9 +2,8 @@ import socket
 import threading
 import time
 
-import asyncio
 
-class Zookeeper():
+class Zookeeper:
     def __init__(self):
         self.HOST = "localhost"
         self.PORT = 9092
@@ -31,11 +30,11 @@ class Zookeeper():
                 self.conn.close()
             else:
                 self.alive_brokers.append(data.decode('utf-8').split(' ')[1])
-                threading.Thread(target=self.multi_threaded_broker, args=[self.conn,self.addr]).start()
+                threading.Thread(target=self.multi_threaded_broker, args=[self.conn, self.addr]).start()
 
     def multi_threaded_broker(self, conn, addr):
         while True:
-            
+
             try:
                 data = conn.recv(2048)
                 time.sleep(1)

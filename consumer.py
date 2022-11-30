@@ -4,19 +4,18 @@ import os.path
 import csv
 import sys
 
-argument=None
+argument = None
 if len(sys.argv) > 1:
     argument = sys.argv[1]
-    
 
 topicName = input("\nEnter topicName consumer subscribes to :")
-consumer = KafkaConsumer(topicName , bootstrap_servers = 'localhost:9092')
-topicLocation = str(str(consumer.broker_port)+"/"+topicName+".csv")
+consumer = KafkaConsumer(topicName, bootstrap_servers='localhost:9092')
+topicLocation = str(str(consumer.broker_port) + "/" + topicName + ".csv")
 
 oldData = []
 
 if argument != '--from-beginning':
-    if os.path.isfile(topicLocation) == True:
+    if os.path.isfile(topicLocation):
         temp = []
         f = open(topicLocation, "r")
         reader = csv.reader(f)
@@ -31,8 +30,8 @@ print("Connected to broker at port: " + str(consumer.broker_port))
 while True:
     try:
         consumer.checkBroker()
-        
-        if os.path.isfile(topicLocation) == True:
+
+        if os.path.isfile(topicLocation):
             temp = []
             f = open(topicLocation, "r")
             reader = csv.reader(f)

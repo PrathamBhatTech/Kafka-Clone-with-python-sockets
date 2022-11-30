@@ -3,7 +3,8 @@
 import socket
 import time
 
-# from signal import signal, SIGPIPE, SIG_DFL  
+
+# from signal import signal, SIGPIPE, SIG_DFL
 # signal(SIGPIPE,SIG_DFL)
 
 # Kafka Producer
@@ -13,7 +14,7 @@ class KafkaProducer():
 
         self.connectToZookeeper()
         self.connectToBroker()
-        
+
         print('Kafka Producer has been initiated...')
 
     def connectToZookeeper(self):
@@ -24,7 +25,7 @@ class KafkaProducer():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.HOST, PORT))
         print('Producer has connected to Zookeeper')
-        
+
         self.conn = sock
 
         self.conn.send("Producer".encode('utf-8'))
@@ -39,7 +40,7 @@ class KafkaProducer():
         port = int(port)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.HOST, port))
-        print('Producer has connected to broker '+str(port))
+        print('Producer has connected to broker ' + str(port))
 
         self.conn = sock
 
@@ -56,8 +57,9 @@ class KafkaProducer():
 
         return self.conn.recv(1024)
 
+
 # Kafka Consumer
-class KafkaConsumer():
+class KafkaConsumer:
     def __init__(self, topicName, bootstrap_servers):
         self.topicName = topicName
         self.bootstrap_servers = bootstrap_servers
@@ -65,7 +67,6 @@ class KafkaConsumer():
 
         self.connectToZookeeper()
         self.connectToBroker()
-        
 
     def connectToZookeeper(self):
         # connect to zookeeper
@@ -76,7 +77,7 @@ class KafkaConsumer():
         print('Consumer connecting to Zookeeper')
         sock.connect((self.HOST, PORT))
         print('Consumer has connected to Zookeeper')
-        
+
         self.conn = sock
 
         self.conn.send("Consumer".encode('utf-8'))
@@ -92,9 +93,9 @@ class KafkaConsumer():
         port = int(port)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(5)
-        print('Consumer is connecting to broker '+str(port))
+        print('Consumer is connecting to broker ' + str(port))
         sock.connect((self.HOST, port))
-        print('Consumer has connected to broker '+str(port))
+        print('Consumer has connected to broker ' + str(port))
 
         self.conn = sock
 
@@ -103,7 +104,9 @@ class KafkaConsumer():
         data = self.conn.recv(1024)
         self.conn.send("ack".encode('utf-8'))
 
-        # print('Kafka Consumer has received a message from ' + str(self.bootstrap_servers) + ': ' + data.decode('utf-8'))
+        # print('Kafka Consumer has received a message from ' +
+        # str(self.bootstrap_servers) + ': ' + data.decode(
+        # 'utf-8'))
 
         if data.decode('utf-8') != 'yes':
             self.topic_exists = True

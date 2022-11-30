@@ -6,6 +6,7 @@ import os.path
 import os
 from time import sleep
 
+
 # Kafka Broker
 class Broker():
     def __init__(self, host, port):
@@ -30,7 +31,6 @@ class Broker():
         # Start heartbeat thread
         threading.Thread(target=self.zookeeper_heartbeat, args=(self.conn,)).start()
 
-
         # Listen for connections
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -47,7 +47,7 @@ class Broker():
 
             if prodcons == 'Producer':
                 self.producers.append(self.addr[1])
-                threading.Thread(target=self.multi_threaded_publisher, args=(self.conn,self.addr)).start()
+                threading.Thread(target=self.multi_threaded_publisher, args=(self.conn, self.addr)).start()
             elif prodcons == 'Consumer':
                 topic = self.conn.recv(2048).decode('utf-8')
                 try:
@@ -59,8 +59,6 @@ class Broker():
                     self.consumers[topic].remove(self.conn)
                     self.consumers[topic].append(self.conn)
 
-
-        
     def multi_threaded_publisher(self, conn, addr):
         while True:
             data = conn.recv(2048)
@@ -75,26 +73,25 @@ class Broker():
 
                 if value:
                     # store this new data into directory of file
-                    topicLocation1 = str("9095"+'/'+topic+'.csv')
-                    topicLocation2 = str("9096"+'/'+topic+'.csv')
-                    topicLocation3 = str("9097"+'/'+topic+'.csv')
+                    topicLocation1 = str("9095" + '/' + topic + '.csv')
+                    topicLocation2 = str("9096" + '/' + topic + '.csv')
+                    topicLocation3 = str("9097" + '/' + topic + '.csv')
 
                     for topicLocation in [topicLocation1, topicLocation2, topicLocation3]:
                         # topic already exists
                         if os.path.isfile(topicLocation) == True:
-                            
+
                             f = open(topicLocation, "a")
                             writer = csv.writer(f)
                             writer.writerow([value])
                             f.close()
                         # topic is new
                         else:
-                            os.system('touch '+topicLocation)
+                            os.system('touch ' + topicLocation)
                             f = open(topicLocation, "w")
                             writer = csv.writer(f)
                             writer.writerow([value])
                             f.close()
-
 
     def zookeeper_heartbeat(self, conn):
         conn.send('Broker'.encode('utf-8'))
