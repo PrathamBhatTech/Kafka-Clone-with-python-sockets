@@ -85,16 +85,16 @@ class KafkaConsumer():
                 self.conn.send("ack".encode('utf-8'))
 
     def __iter__(self):
-        return self.consumer.__iter__()
+        return self.consumer.__iter__()  # type: ignore
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.consumer.close()
+        self.consumer.close()  # type: ignore
 
     def close(self):
-        self.consumer.close()
+        self.consumer.close()  # type: ignore
 
     def poll(self, timeout_ms=None, max_records=None, update_offsets=True):
-        return self.consumer.poll(timeout_ms, max_records, update_offsets)
+        return self.consumer.poll(timeout_ms, max_records, update_offsets)  # type: ignore
 
 
 
