@@ -1,8 +1,9 @@
 import socket
 import sys
 import threading
-import json
+import csv
 import os.path
+import os
 from time import sleep
 
 # Kafka Broker
@@ -24,6 +25,7 @@ class Broker():
         sock_zookeeper.connect((HOST, PORT))
         self.conn = sock_zookeeper
         print('Broker has connected to Zookeeper')
+        self.conn.send(f"Broker {self.port}".encode('utf-8'))
 
         # Start heartbeat thread
         threading.Thread(target=self.zookeeper_heartbeat, args=(self.conn,)).start()
@@ -41,16 +43,22 @@ class Broker():
             print('Broker has accepted a connection from ' + str(self.addr))
 
             prodcons = self.conn.recv(2048).decode('utf-8')
+            self.conn.sendall("ack".encode('utf-8'))
 
             if prodcons == 'Producer':
-                self.producers.append(self.addr)
+                self.producers.append(self.addr[1])
                 threading.Thread(target=self.multi_threaded_publisher, args=(self.conn,self.addr)).start()
             else:
                 topic = self.conn.recv(2048).decode('utf-8')
-                if topic in self.consumers:
+                try:
+                    if topic in self.consumers:
+                        self.consumers[topic].append(self.conn)
+                    else:
+                        self.consumers[topic] = [self.conn]
+                except Exception as e:
+                    self.consumers[topic].remove(self.conn)
                     self.consumers[topic].append(self.conn)
-                else:
-                    self.consumers[topic] = self.conn
+
 
         
     def multi_threaded_publisher(self, conn, addr):
@@ -63,33 +71,34 @@ class Broker():
 
             else:
                 topic, value = data.decode('utf-8').split(':', 1)
-                print('Broker has received a message from ' + str(addr) + ': ' + data.decode('utf-8'))
+                print('Broker has received a message from ' + str(addr) + ': ' + topic + ' ' + value)
 
-                # store this new data into directory of file
-                topicLocation = str('./topic/'+topic+'.json')
+                print("Value: " + value)
+                if value:
+                    # store this new data into directory of file
+                    topicLocation = str('topics/'+topic+'.csv')
 
-                # topic already exists
-                if os.path.isfile(topicLocation) == True:
-                    
-                    with open(topicLocation, "r") as jsonFile:
-                        existingData = json.load(jsonFile)
-                    
-                    updatedData = {"val":existingData["val"].append(value)} 
+                    # topic already exists
+                    if os.path.isfile(topicLocation) == True:
+                        
+                        f = open(topicLocation, "a")
+                        writer = csv.writer(f)
+                        writer.writerow([value])
+                        f.close()
+                    # topic is new
+                    else:
+                        os.system('touch topics/'+topic+'.csv')
+                        f = open(topicLocation, "w")
+                        writer = csv.writer(f)
+                        writer.writerow([value])
+                        f.close()
 
-                    with open(topicLocation, "w") as jsonFile:
-                        json.dump(updatedData, jsonFile)
-
-                # topic is new
-                else:
-                    newData = {"val":[value]} 
-                    with open(topicLocation, "w") as jsonFile:
-                        json.dump(newData, jsonFile)
 
                 # NEEDS CHANGE
                 # hb
-                if topic in self.consumers:
-                    for consumer in self.consumers[topic]:
-                        consumer.sendall(value)
+                # if topic in self.consumers:
+                #     for consumer in self.consumers[topic]:
+                #         consumer.sendall(value)
 
 
     def zookeeper_heartbeat(self, conn):

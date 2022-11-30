@@ -9,4 +9,7 @@ print('Kafka Producer has been initiated...')
 
 while True:
     data = input()
-    ack = producer.send(data.encode('utf-8'))
+    try:
+        ack = producer.send(data)
+    except Exception as e:
+        producer.reconnectToBroker()
