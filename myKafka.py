@@ -3,10 +3,6 @@
 import socket
 import time
 
-
-# from signal import signal, SIGPIPE, SIG_DFL
-# signal(SIGPIPE,SIG_DFL)
-
 # Kafka Producer
 class KafkaProducer():
     def __init__(self, bootstrap_servers):
