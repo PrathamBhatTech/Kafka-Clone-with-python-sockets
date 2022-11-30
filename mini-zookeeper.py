@@ -17,6 +17,7 @@ class Zookeeper():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((self.HOST, self.PORT))
+        sock.settimeout(10)
         sock.listen(1)
 
         while True:
@@ -26,6 +27,7 @@ class Zookeeper():
             if data.decode('utf-8').split(' ')[0] != 'Broker':
                 port = alive_brokers[0]
                 self.conn.send(str(port).encode('utf-8'))
+                self.conn.close()
             else:
                 alive_brokers.append(data.decode('utf-8').split(' ')[1])
                 threading.Thread(target=self.multi_threaded_broker, args=[self.conn,self.addr]).start()
@@ -36,6 +38,7 @@ class Zookeeper():
             # asyncio.run(self.no_time_to_die())
             data = conn.recv(2048)
             if not data:
+                alive_brokers.pop_left()
                 break
             print('mini Zookeeper has received a message from ' + str(addr) + ': ' + data.decode('utf-8'))
             conn.sendall("ack".encode('utf-8'))

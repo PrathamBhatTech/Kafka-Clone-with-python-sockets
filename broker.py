@@ -48,7 +48,7 @@ class Broker():
             if prodcons == 'Producer':
                 self.producers.append(self.addr[1])
                 threading.Thread(target=self.multi_threaded_publisher, args=(self.conn,self.addr)).start()
-            else:
+            elif prodcons == 'Consumer':
                 topic = self.conn.recv(2048).decode('utf-8')
                 try:
                     if topic in self.consumers:
@@ -58,6 +58,8 @@ class Broker():
                 except Exception as e:
                     self.consumers[topic].remove(self.conn)
                     self.consumers[topic].append(self.conn)
+            elif prodcons == 'ack':
+                self.conn.send('ack'.encode('utf-8'))
 
 
         

@@ -11,5 +11,5 @@ while True:
     data = input()
     try:
         ack = producer.send(data)
-    except Exception as e:
+    except BrokenPipeError:
         producer.reconnectToBroker()

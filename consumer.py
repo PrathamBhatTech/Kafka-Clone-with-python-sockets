@@ -10,6 +10,7 @@ topicStatus = consumer.topic_status()
 print(topicStatus)
 while True:
     try:
+        consumer.checkBroker()
         topicLocation = str("topics/"+topicName+".csv")
         if os.path.isfile(topicLocation) == True:
             temp = []
