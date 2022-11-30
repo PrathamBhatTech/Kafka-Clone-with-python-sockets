@@ -10,7 +10,7 @@ try:
         ## - send this topic to broker for every iteration
         # Broker sends yes/no to consumer.
         ack = [True,False] #recieve this value
-        
+
         topicLocation = str("./topic/"+topicName+".json")
         if os.path.isfile(topicLocation) == True and ack == True:
             f = open('data.json')
@@ -18,6 +18,7 @@ try:
             data = temp["val"]
             for topic in list(set(temp) - set(oldData)):
                 print(topic)        
+            oldData = temp
         else:
             # print("No new data for :",topicName)
             pass
