@@ -1,7 +1,10 @@
 # simulate the kafka library
 
 import socket
+import time
 
+# from signal import signal, SIGPIPE, SIG_DFL  
+# signal(SIGPIPE,SIG_DFL)
 
 # Kafka Producer
 class KafkaProducer():
@@ -41,8 +44,10 @@ class KafkaProducer():
         self.conn = sock
 
         self.conn.send("Producer".encode('utf-8'))
+        self.conn.recv(1024)
 
     def reconnectToBroker(self):
+        time.sleep(2)
         self.connectToZookeeper()
         self.connectToBroker()
 
@@ -68,6 +73,7 @@ class KafkaConsumer():
         PORT = int(PORT)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print('Consumer connecting to Zookeeper')
         sock.connect((self.HOST, PORT))
         print('Consumer has connected to Zookeeper')
         
@@ -86,6 +92,7 @@ class KafkaConsumer():
         port = int(port)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(5)
+        print('Consumer is connecting to broker '+str(port))
         sock.connect((self.HOST, port))
         print('Consumer has connected to broker '+str(port))
 
@@ -110,17 +117,23 @@ class KafkaConsumer():
         # if response is not received, reconnect to broker
         try:
             self.conn.send("check".encode('utf-8'))
-            if self.conn.recv(1024).decode('utf-8') != 'ack':
-                self.reconnectToBroker()
-        except:
+            self.conn.recv(8).decode('utf-8')
+        except BrokenPipeError:
+            print('Broker is down. Reconnecting...')
             self.reconnectToBroker()
+        except Exception as e:
+            print('Error: ' + str(e))
+            if e == "[Errno 104] Connection reset by peer" or e == "[Errno 32] Broken pipe":
+                self.conn.close()
+                self.reconnectToBroker()
 
     def reconnectToBroker(self):
+        time.sleep(5)
         self.connectToZookeeper()
         self.connectToBroker()
 
     def close(self):
-        self.consumer.close()
+        self.conn.close()
 
     def poll(self, timeout_ms=None, max_records=None, update_offsets=True):
         return self.consumer.poll(timeout_ms, max_records, update_offsets)

@@ -58,8 +58,6 @@ class Broker():
                 except Exception as e:
                     self.consumers[topic].remove(self.conn)
                     self.consumers[topic].append(self.conn)
-            elif prodcons == 'ack':
-                self.conn.send('ack'.encode('utf-8'))
 
 
         
@@ -96,19 +94,12 @@ class Broker():
                         f.close()
 
 
-                # NEEDS CHANGE
-                # hb
-                # if topic in self.consumers:
-                #     for consumer in self.consumers[topic]:
-                #         consumer.sendall(value)
-
-
     def zookeeper_heartbeat(self, conn):
         conn.send('Broker'.encode('utf-8'))
         while True:
             conn.send(f'Broker {self.host}:{self.port} is alive'.encode('utf-8'))
             ack = conn.recv(2048).decode('utf-8')
-            sleep(3)
+            sleep(0.5)
 
 
 host, port = sys.argv[1].split(':')

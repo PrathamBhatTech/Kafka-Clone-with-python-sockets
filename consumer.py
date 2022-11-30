@@ -28,5 +28,7 @@ while True:
             pass
 
     except KeyboardInterrupt:
+        consumer.close()
+        consumer.reconnectToBroker()
         print('Unsubscribed!')
         break

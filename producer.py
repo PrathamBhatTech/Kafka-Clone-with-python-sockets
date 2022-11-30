@@ -11,5 +11,10 @@ while True:
     data = input()
     try:
         ack = producer.send(data)
-    except BrokenPipeError:
+    except IOError as e:
+        print('Broker is down. Reconnecting...')
         producer.reconnectToBroker()
+    except Exception as e:
+        print(e)
+        if e == "[Errno 104] Connection reset by peer" or e == "[Errno 32] Broken pipe":
+            producer.reconnectToBroker()
